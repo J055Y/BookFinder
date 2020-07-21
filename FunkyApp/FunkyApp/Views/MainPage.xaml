@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="FunkyApp.MainPage">
+
+    <!--<Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height=".2*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+    </Grid>-->
+
+    <StackLayout HorizontalOptions="Center">
+        
+        <Grid x:Name="HeaderContent">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="75"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+
+            <Image BackgroundColor="SlateGray" Source="j055y"
+                   Grid.Row="0" Grid.Column="0"></Image>
+        </Grid>
+
+        <Image x:Name="PhotoImage" HorizontalOptions="Fill" VerticalOptions="StartAndExpand"></Image>
+        <Button x:Name="CameraButton" 
+                Text="Take Photo" 
+                HorizontalOptions="Fill" 
+                VerticalOptions="EndAndExpand"
+                Clicked="CameraButton_OnClicked">
+        </Button>
+
+        <Label x:Name="ClickedLabel" 
+               HorizontalOptions="Center" 
+               VerticalOptions="StartAndExpand"
+               FontSize="24">
+        </Label>
+
+        <StackLayout x:Name="MainContent" HorizontalOptions="Fill"  VerticalOptions="EndAndExpand" Margin="10">
+            <Label x:Name="HelloLabel" Text="Hello World"></Label>
+            <Image Source="" BackgroundColor="Coral"></Image>
+            <Slider x:Name="ValueSlider" ValueChanged="Slider_OnValueChanged"></Slider>
+            <Button Clicked="Button_OnClicked" Text="Click Me"></Button>
+        </StackLayout>
+
+    </StackLayout>
+
+</ContentPage>

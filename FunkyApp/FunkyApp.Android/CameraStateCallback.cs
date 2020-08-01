@@ -1,6 +1,4 @@
-﻿using System;
-using Android.Hardware.Camera2;
-using Android.Widget;
+﻿using Android.Hardware.Camera2;
 
 namespace FunkyApp.Droid
 {
@@ -13,29 +11,27 @@ namespace FunkyApp.Droid
         }
         public override void OnOpened(CameraDevice camera)
         {
-            fragment.cameraDevice = camera;
-            fragment.startPreview();
-            fragment.cameraOpenCloseLock.Release();
-            if (null != fragment.textureView)
-                fragment.configureTransform(fragment.textureView.Width, fragment.textureView.Height);
+            fragment.CameraDevice = camera;
+            fragment.StartPreview();
+            fragment.CameraOpenCloseLock.Release();
+            if (null != fragment.TextureView)
+                fragment.ConfigureTransform(fragment.TextureView.Width, fragment.TextureView.Height);
         }
 
         public override void OnDisconnected(CameraDevice camera)
         {
-            fragment.cameraOpenCloseLock.Release();
+            fragment.CameraOpenCloseLock.Release();
             camera.Close();
-            fragment.cameraDevice = null;
+            fragment.CameraDevice = null;
         }
 
         public override void OnError(CameraDevice camera, CameraError error)
         {
-            fragment.cameraOpenCloseLock.Release();
+            fragment.CameraOpenCloseLock.Release();
             camera.Close();
-            fragment.cameraDevice = null;
+            fragment.CameraDevice = null;
             if (null != fragment.Activity)
                 fragment.Activity.Finish();
         }
-
-
     }
 }

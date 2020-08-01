@@ -13,8 +13,8 @@ namespace FunkyApp.Droid
         }
         public override void OnConfigured(CameraCaptureSession session)
         {
-            fragment.previewSession = session;
-            fragment.updatePreview();
+            fragment.PreviewSession = session;
+            fragment.UpdatePreview();
 
         }
 

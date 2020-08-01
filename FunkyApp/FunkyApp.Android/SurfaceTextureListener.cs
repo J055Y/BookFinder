@@ -18,7 +18,7 @@ namespace FunkyApp.Droid
 
         public void OnSurfaceTextureSizeChanged(SurfaceTexture surface_texture, int width, int height)
         {
-            fragment.configureTransform(width, height);
+            fragment.ConfigureTransform(width, height);
         }
 
         public bool OnSurfaceTextureDestroyed(SurfaceTexture surface_texture)

@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Android.App;
 using Android.Content;
 using Android.OS;
@@ -9,46 +9,58 @@ using Android.Widget;
 using Android.Graphics;
 using Android.Hardware.Camera2;
 using Android.Hardware.Camera2.Params;
-using Android.Media;
 
 using Java.Lang;
 using Java.Util;
-using Java.IO;
 using Java.Util.Concurrent;
+using IOException = Java.IO.IOException;
 using Math = Java.Lang.Math;
 using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = AndroidX.Fragment.App.DialogFragment;
 using Fragment = AndroidX.Fragment.App.Fragment;
+using Android.Support.Design.Widget;
 
 namespace FunkyApp.Droid
 {
     public class CameraFragment : Fragment, View.IOnClickListener
-    {
+	{
+		private ICameraFragmentListener cameraFragmentListener;
+
+		public interface ICameraFragmentListener
+		{
+			public void OnImageSet(Bitmap image);
+		}
+
 		private const string TAG = "CameraFragment";
-		private SparseIntArray ORIENTATIONS = new SparseIntArray();
+		
+		private readonly SparseIntArray ORIENTATIONS = new SparseIntArray();
 
 		// Button to record video
-		private Button buttonVideo;
+		//private Button buttonVideo;
 
-		// AutoFitTextureView for camera preview
-		public TextureView textureView;
+		// Button to record to database
+		//private Button buttonData;
+
+		//Button to capture frame
+		private Button buttonCapture;
+
+		// TextureView for Camera Preview
+		public TextureView TextureView;
 		
-		public CameraDevice cameraDevice;
-		public CameraCaptureSession previewSession;
-		public MediaRecorder mediaRecorder;
+		public CameraDevice CameraDevice;
+		public CameraCaptureSession PreviewSession;
+		//public MediaRecorder mediaRecorder;
 
-		private bool isRecordingVideo;
-		public Semaphore cameraOpenCloseLock = new Semaphore(1);
+		//private bool isRecordingVideo;
+		public readonly Semaphore CameraOpenCloseLock = new Semaphore(1);
 
 		// Called when the CameraDevice changes state
-		private CameraStateCallback stateListener;
+		private readonly CameraStateCallback stateListener;
 		// Handles several lifecycle events of a TextureView
-		private SurfaceTextureListener surfaceTextureListener;
-
-		public CaptureRequest.Builder builder;
+		private readonly SurfaceTextureListener surfaceTextureListener;
+		
 		private CaptureRequest.Builder previewBuilder;
 
-		private Size videoSize;
 		private Size previewSize;
 
 		private HandlerThread backgroundThread;
@@ -63,67 +75,62 @@ namespace FunkyApp.Droid
 			surfaceTextureListener = new SurfaceTextureListener(this);
 			stateListener = new CameraStateCallback(this);
 		}
-		public static CameraFragment newInstance()
+
+		public static CameraFragment NewInstance()
 		{
 			var fragment = new CameraFragment();
 			fragment.RetainInstance = true;
 			return fragment;
 		}
 
-		private Size ChooseVideoSize(Size[] choices)
+		private static int GreatestCommonDivisor(int width, int height)
 		{
-			foreach (Size size in choices)
+			while (true)
 			{
-				if (size.Width == size.Height * 4 / 3 && size.Width <= 1000)
-					return size;
+				if (height == 0)
+					return width;
+
+				var width1 = width;
+				width = height;
+				height = width1 % height;
 			}
-			Log.Error(TAG, "Couldn't find any suitable video size");
-			return choices[choices.Length - 1];
 		}
 
-		private Size ChooseOptimalSize(Size[] choices, int width, int height, Size aspectRatio)
-		{
-			var bigEnough = new List<Size>();
-			int w = aspectRatio.Width;
-			int h = aspectRatio.Height;
-			foreach (Size option in choices)
-			{
-				if (option.Height == option.Width * h / w &&
-					option.Width >= width && option.Height >= height)
-					bigEnough.Add(option);
-			}
+		private static Size ChooseOptimalSize(IReadOnlyList<Size> choices, int width, int height, TextureView textureView) // Need to scale preview size to device
+        {
+	        var aspectRatio = GreatestCommonDivisor(textureView.Width, textureView.Height);
+            //var bigEnough = choices.Where(option => option.Height == option.Width * h / w && option.Width >= width && option.Height >= height).ToList();
+            var goodResolutions = choices.Where(option => GreatestCommonDivisor(option.Width, option.Height) == aspectRatio).ToList();
+            
+            if (goodResolutions.Count > 0)
+                return (Size)Collections.Min(goodResolutions, new CompareSizesByArea());
+            else
+            {
+                Log.Error(TAG, "Couldn't find any suitable preview size");
+                return choices[0];
+            }
+        }
 
-			if (bigEnough.Count > 0)
-				return (Size)Collections.Min(bigEnough, new CompareSizesByArea());
-			else
-			{
-				Log.Error(TAG, "Couldn't find any suitable preview size");
-				return choices[0];
-			}
-		}
-		public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+        public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 		{
 			return inflater.Inflate(Resource.Layout.fragment_camera2_video, container, false);
 		}
 
 		public override void OnViewCreated(View view, Bundle savedInstanceState)
 		{
-			textureView = (TextureView)view.FindViewById(Resource.Id.texture);
-			buttonVideo = (Button)view.FindViewById(Resource.Id.video);
-			buttonVideo.SetOnClickListener(this);
-			//view.FindViewById(Resource.Id.info).SetOnClickListener(this);
-
+			TextureView = (TextureView)view.FindViewById(Resource.Id.texture);
+			buttonCapture = (Button)view.FindViewById(Resource.Id.capture);
+			buttonCapture.SetOnClickListener(this);
 		}
 
 		public override void OnResume()
 		{
 			base.OnResume();
 			StartBackgroundThread();
-			if (textureView.IsAvailable)
-				OpenCamera(textureView.Width, textureView.Height);
+			if (TextureView.IsAvailable)
+				OpenCamera(TextureView.Width, TextureView.Height);
 			else
-				textureView.SurfaceTextureListener = surfaceTextureListener;
-
+				TextureView.SurfaceTextureListener = surfaceTextureListener;
 		}
 
 		public override void OnPause()
@@ -133,91 +140,94 @@ namespace FunkyApp.Droid
 			base.OnPause();
 		}
 
-		private void StartBackgroundThread()
-		{
-			backgroundThread = new HandlerThread("CameraBackground");
-			backgroundThread.Start();
-			backgroundHandler = new Handler(backgroundThread.Looper);
-		}
+        private void StartBackgroundThread()
+        {
+            backgroundThread = new HandlerThread("CameraBackground");
+            backgroundThread.Start();
+            backgroundHandler = new Handler(backgroundThread.Looper);
+        }
 
-		private void StopBackgroundThread()
+        private void StopBackgroundThread()
+        {
+            backgroundThread.QuitSafely();
+            try
+            {
+                backgroundThread.Join();
+                backgroundThread = null;
+                backgroundHandler = null;
+            }
+            catch (InterruptedException e)
+            {
+                e.PrintStackTrace();
+            }
+        }
+
+        public void OnClick(View view)
 		{
-			backgroundThread.QuitSafely();
+            switch (view.Id)
+            {
+				case Resource.Id.capture:
+					var bitmap = CaptureStillImage();
+
+					if (bitmap != null)
+					{
+						Snackbar.Make(this.View, "Bitmap Captured", Snackbar.LengthShort)
+							.Show();
+					}
+					else
+					{
+						Snackbar.Make(this.View, "Bitmap Not Captured", Snackbar.LengthShort)
+							   .Show();
+					}
+					cameraFragmentListener?.OnImageSet(bitmap);
+					break;
+                default:
+                    break;
+            }
+        }
+
+        private Bitmap CaptureStillImage()
+        {
 			try
 			{
-				backgroundThread.Join();
-				backgroundThread = null;
-				backgroundHandler = null;
+				Log.Debug(TAG, "TextureView Width: " + TextureView.Width +
+				               "\n | TextureView Height: " + TextureView.Height);
+				var frame = Bitmap.CreateBitmap(TextureView.Width, TextureView.Height, Bitmap.Config.Argb8888);
+				return(TextureView.GetBitmap(frame));
 			}
-			catch (InterruptedException e)
+			catch (IllegalArgumentException e)
 			{
 				e.PrintStackTrace();
+				return null;
 			}
-		}
-
-		public void OnClick(View view)
-		{
-			switch (view.Id)
-			{
-				case Resource.Id.video:
-					{
-						if (isRecordingVideo)
-						{
-							stopRecordingVideo();
-						}
-						else
-						{
-							StartRecordingVideo();
-						}
-						break;
-					}
-
-				case Resource.Id.info:
-					{
-						if (null != Activity)
-						{
-							new AlertDialog.Builder(Activity)
-								.SetMessage(Resource.String.intro_message)
-								.SetPositiveButton(Android.Resource.String.Ok, (Android.Content.IDialogInterfaceOnClickListener)null)
-								.Show();
-						}
-						break;
-					}
-			}
+			catch (IllegalStateException e)
+            {
+				e.PrintStackTrace();
+				return null;
+            }
 		}
 
         //Tries to open a CameraDevice
-		public void OpenCamera(int width, int height)
+        public void OpenCamera(int width, int height)
 		{
 			if (null == Activity || Activity.IsFinishing)
 				return;
 
-			CameraManager manager = (CameraManager)Activity.GetSystemService(Context.CameraService);
+			var manager = (CameraManager)Activity.GetSystemService(Context.CameraService);
 			try
 			{
-				if (!cameraOpenCloseLock.TryAcquire(2500, TimeUnit.Milliseconds))
+				if (!CameraOpenCloseLock.TryAcquire(2500, TimeUnit.Milliseconds))
                     throw new RuntimeException("Time out waiting to lock camera opening.");
-                string cameraId = manager.GetCameraIdList()[0];
-                CameraCharacteristics characteristics = manager.GetCameraCharacteristics(cameraId);
-                StreamConfigurationMap map = (StreamConfigurationMap)characteristics.Get(CameraCharacteristics.ScalerStreamConfigurationMap);
-                videoSize = ChooseVideoSize(map.GetOutputSizes(Class.FromType(typeof(MediaRecorder))));
-                previewSize = ChooseOptimalSize(map.GetOutputSizes(Class.FromType(typeof(MediaRecorder))), width, height, videoSize);
-                int orientation = (int)Resources.Configuration.Orientation;
+                var cameraId = manager.GetCameraIdList()[0];
+                var characteristics = manager.GetCameraCharacteristics(cameraId);
+                var map = (StreamConfigurationMap)characteristics.Get(CameraCharacteristics.ScalerStreamConfigurationMap);
+                // var largest = (Size)Collections.Max(Arrays.AsList(map.GetOutputSizes((int)ImageFormatType.Yuv420888)),
+                //     new CompareSizesByArea());
 
-				Log.Info(TAG, characteristics.Get(CameraCharacteristics.InfoSupportedHardwareLevel).ToString());
-
-				//textureView.SetTransform(matrix);
-
-/*                if (orientation == (int)Android.Content.Res.Orientation.Landscape)
-                {
-                    textureView.SetAspectRatio(previewSize.Width, previewSize.Height);
-                }
-                else
-                {
-                    textureView.SetAspectRatio(previewSize.Height, previewSize.Width);
-                }*/
-                configureTransform(width, height);
-                mediaRecorder = new MediaRecorder();
+				previewSize = ChooseOptimalSize(map.GetOutputSizes(Class.FromType(typeof(SurfaceTexture))), width, height, TextureView);
+				Log.Debug(TAG, "Preview Width: " + previewSize.Width +
+				               "\n | Preview Height: " + previewSize.Height);
+				ConfigureTransform(width, height);
                 manager.OpenCamera(cameraId, stateListener, null);
 			}
 			catch (CameraAccessException)
@@ -235,30 +245,45 @@ namespace FunkyApp.Droid
 				throw new RuntimeException("Interrupted while trying to lock camera opening.");
 			}
 		}
+        
+        private void CloseCamera()
+        {
+	        try
+	        {
+		        CameraOpenCloseLock.Acquire();
+		        if (null == CameraDevice) return;
+		        CameraDevice.Close();
+		        CameraDevice = null;
+	        }
+	        catch (InterruptedException)
+	        {
+		        throw new RuntimeException("Interrupted while trying to lock camera closing.");
+	        }
+	        finally
+	        {
+		        CameraOpenCloseLock.Release();
+	        }
+        }
 
 		//Start the camera preview
-		public void startPreview()
+		public void StartPreview()
 		{
-			if (null == cameraDevice || !textureView.IsAvailable || null == previewSize)
+			if (null == CameraDevice || !TextureView.IsAvailable || null == previewSize)
 				return;
 
 			try
 			{
-				SetUpMediaRecorder();
-				SurfaceTexture texture = textureView.SurfaceTexture;
-				//Assert.IsNotNull(texture);
+				SurfaceTexture texture = TextureView.SurfaceTexture;
 				texture.SetDefaultBufferSize(previewSize.Width, previewSize.Height);
-				previewBuilder = cameraDevice.CreateCaptureRequest(CameraTemplate.Record);
+
+				previewBuilder = CameraDevice.CreateCaptureRequest(CameraTemplate.Record);
+
 				var surfaces = new List<Surface>();
 				var previewSurface = new Surface(texture);
 				surfaces.Add(previewSurface);
 				previewBuilder.AddTarget(previewSurface);
 
-				var recorderSurface = mediaRecorder.Surface;
-				surfaces.Add(recorderSurface);
-				previewBuilder.AddTarget(recorderSurface);
-
-				cameraDevice.CreateCaptureSession(surfaces, new PreviewCaptureStateCallback(this), backgroundHandler);
+				CameraDevice.CreateCaptureSession(surfaces, new PreviewCaptureStateCallback(this), backgroundHandler);
 
 			}
 			catch (CameraAccessException e)
@@ -271,44 +296,17 @@ namespace FunkyApp.Droid
 			}
 		}
 
-		private void CloseCamera()
-		{
-			try
-			{
-				cameraOpenCloseLock.Acquire();
-				if (null != cameraDevice)
-				{
-					cameraDevice.Close();
-					cameraDevice = null;
-				}
-				if (null != mediaRecorder)
-				{
-					mediaRecorder.Release();
-					mediaRecorder = null;
-				}
-			}
-			catch (InterruptedException)
-			{
-				throw new RuntimeException("Interrupted while trying to lock camera closing.");
-			}
-			finally
-			{
-				cameraOpenCloseLock.Release();
-			}
-		}
-
 		//Update the preview
-		public void updatePreview()
+		public void UpdatePreview()
 		{
-			if (null == cameraDevice)
+			if (null == CameraDevice)
 				return;
 
 			try
 			{
-				setUpCaptureRequestBuilder(previewBuilder);
-				HandlerThread thread = new HandlerThread("CameraPreview");
+				var thread = new HandlerThread("CameraPreview");
 				thread.Start();
-				previewSession.SetRepeatingRequest(previewBuilder.Build(), null, backgroundHandler);
+				PreviewSession.SetRepeatingRequest(previewBuilder.Build(), null, backgroundHandler);
 			}
 			catch (CameraAccessException e)
 			{
@@ -316,117 +314,51 @@ namespace FunkyApp.Droid
 			}
 		}
 
-		private void setUpCaptureRequestBuilder(CaptureRequest.Builder builder)
+		//Configures the necessary matrix transformation to apply to the textureView
+		public void ConfigureTransform(int viewWidth, int viewHeight)
 		{
-			builder.Set(CaptureRequest.ControlMode, new Java.Lang.Integer((int)ControlMode.Auto));
-
-		}
-
-		//Configures the neccesary matrix transformation to apply to the textureView
-		public void configureTransform(int viewWidth, int viewHeight)
-		{
-			if (null == Activity || null == previewSize || null == textureView)
+			if (null == Activity || null == previewSize || null == TextureView)
 				return;
 
-			int rotation = (int)Activity.WindowManager.DefaultDisplay.Rotation;
+			var rotation = (int)Activity.WindowManager.DefaultDisplay.Rotation;
 			var matrix = new Matrix();
 			var viewRect = new RectF(0, 0, viewWidth, viewHeight);
 			var bufferRect = new RectF(0, 0, previewSize.Height, previewSize.Width);
-			float centerX = viewRect.CenterX();
-			float centerY = viewRect.CenterY();
-			if ((int)SurfaceOrientation.Rotation90 == rotation || (int)SurfaceOrientation.Rotation270 == rotation)
+			var centerX = viewRect.CenterX();
+			var centerY = viewRect.CenterY();
+			switch (rotation)
 			{
-				bufferRect.Offset((centerX - bufferRect.CenterX()), (centerY - bufferRect.CenterY()));
-				matrix.SetRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.Fill);
-				float scale = System.Math.Max(
-					(float)viewHeight / previewSize.Height,
-					(float)viewHeight / previewSize.Width);
-				matrix.PostScale(scale, scale, centerX, centerY);
-				matrix.PostRotate(90 * (rotation - 2), centerX, centerY);
-			} else if ((int)SurfaceOrientation.Rotation180 == rotation)
-            {
-				matrix.PostRotate(180, centerX, centerY);
-            } else
-            {
-				bufferRect.Offset(centerX - bufferRect.CenterX(), centerY - bufferRect.CenterY());
-				matrix.SetRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.Fill);
-				float scale = Math.Max(
-					(float)viewHeight / previewSize.Height,
-					(float)viewHeight / previewSize.Width);
-				matrix.PostScale(scale, scale, centerX, centerY);
-				matrix.PostRotate(0, centerX, centerY);
-            }
-			textureView.SetTransform(matrix);
-		}
-
-		private void SetUpMediaRecorder()
-		{
-			if (null == Activity)
-				return;
-			//mediaRecorder.SetAudioSource(AudioSource.Mic);
-			mediaRecorder.SetVideoSource(VideoSource.Surface);
-			mediaRecorder.SetOutputFormat(OutputFormat.Mpeg4);
-			mediaRecorder.SetOutputFile(GetVideoFile(Activity).AbsolutePath);
-			mediaRecorder.SetVideoEncodingBitRate(10000000);
-			mediaRecorder.SetVideoFrameRate(30);
-			mediaRecorder.SetVideoSize(videoSize.Width, videoSize.Height);
-			mediaRecorder.SetVideoEncoder(VideoEncoder.H264);
-			//mediaRecorder.SetAudioEncoder(AudioEncoder.Aac);
-			int rotation = (int)Activity.WindowManager.DefaultDisplay.Rotation;
-			int orientation = ORIENTATIONS.Get(rotation);
-			mediaRecorder.SetOrientationHint(orientation);
-			mediaRecorder.Prepare();
-		}
-
-		private File GetVideoFile(Context context)
-		{
-			string fileName = "video-" + DateTime.Now.ToString("yymmdd-hhmmss") + ".mp4"; //new filenamed based on date time
-			File file = new File(context.GetExternalFilesDir(null), fileName);
-			return file;
-		}
-
-		private void StartRecordingVideo()
-		{
-			try
-			{
-				//UI
-				buttonVideo.SetText(Resource.String.stop);
-				isRecordingVideo = true;
-
-				//Start recording
-				mediaRecorder.Start();
+				case (int)SurfaceOrientation.Rotation90:
+				case (int)SurfaceOrientation.Rotation270:
+				{
+					bufferRect.Offset((centerX - bufferRect.CenterX()), (centerY - bufferRect.CenterY()));
+					matrix.SetRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.Fill);
+					var scale = System.Math.Max(
+						(float)viewHeight / previewSize.Height,
+						(float)viewHeight / previewSize.Width);
+					matrix.PostScale(scale, scale, centerX, centerY);
+					matrix.PostRotate(90 * (rotation - 2), centerX, centerY);
+					break;
+				}
+				case (int)SurfaceOrientation.Rotation180:
+					matrix.PostRotate(180, centerX, centerY);
+					break;
+				default:
+				{
+					bufferRect.Offset(centerX - bufferRect.CenterX(), centerY - bufferRect.CenterY());
+					matrix.SetRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.Fill);
+					var scale = Math.Max(
+						(float)viewHeight / previewSize.Height,
+						(float)viewHeight / previewSize.Width);
+					matrix.PostScale(scale, scale, centerX, centerY);
+					matrix.PostRotate(0, centerX, centerY);
+					break;
+				}
 			}
-			catch (IllegalStateException e)
-			{
-				e.PrintStackTrace();
-			}
+			TextureView.SetTransform(matrix);
 		}
 
-		public void stopRecordingVideo()
-		{
-			//UI
-			isRecordingVideo = false;
-			buttonVideo.SetText(Resource.String.record);
-
-			if (null != Activity)
-			{
-				Toast.MakeText(Activity, "Video saved: " + GetVideoFile(Activity),
-					ToastLength.Short).Show();
-			}
-
-			//Stop recording
-			/*
-			mediaRecorder.Stop ();
-			mediaRecorder.Reset ();
-			startPreview ();
-			*/
-
-			// Workaround for https://github.com/googlesamples/android-Camera2Video/issues/2
-			CloseCamera();
-			OpenCamera(textureView.Width, textureView.Height);
-		}
-
-		public class ErrorDialog : DialogFragment
+        private class ErrorDialog : DialogFragment
 		{
 			public override Dialog OnCreateDialog(Bundle savedInstanceState)
 			{
@@ -440,7 +372,7 @@ namespace FunkyApp.Droid
 
 		private class MyDialogOnClickListener : Java.Lang.Object, IDialogInterfaceOnClickListener
 		{
-			ErrorDialog er;
+			private readonly ErrorDialog er;
 			public MyDialogOnClickListener(ErrorDialog e)
 			{
 				er = e;
@@ -452,21 +384,36 @@ namespace FunkyApp.Droid
 		}
 
 		// Compare two Sizes based on their areas
-		private class CompareSizesByArea : Java.Lang.Object, Java.Util.IComparator
+		private class CompareSizesByArea : Java.Lang.Object, IComparator
 		{
 			public int Compare(Java.Lang.Object lhs, Java.Lang.Object rhs)
 			{
 				// We cast here to ensure the multiplications won't overflow
-				if (lhs is Size && rhs is Size)
-				{
-					var right = (Size)rhs;
-					var left = (Size)lhs;
-					return Long.Signum((long)left.Width * left.Height -
-						(long)right.Width * right.Height);
-				}
-				else
-					return 0;
+				if (!(lhs is Size) || !(rhs is Size)) return 0;
+				var right = (Size)rhs;
+				var left = (Size)lhs;
+				return Long.Signum((long)left.Width * left.Height -
+				                   (long)right.Width * right.Height);
 			}
 		}
-	}
+
+        public override void OnAttach(Context context)
+        {
+            base.OnAttach(context);
+			if (context is ICameraFragmentListener listener)
+            {
+				cameraFragmentListener = listener;
+            } else
+            {
+				throw new RuntimeException(context.ToString()
+					+ " must implement OnImageSetListener");
+            }
+        }
+
+        public override void OnDetach()
+        {
+            base.OnDetach();
+			cameraFragmentListener = null;
+        }
+    }
 }

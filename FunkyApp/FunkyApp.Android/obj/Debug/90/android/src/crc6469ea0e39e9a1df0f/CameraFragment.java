@@ -15,6 +15,8 @@ public class CameraFragment
 			"n_onViewCreated:(Landroid/view/View;Landroid/os/Bundle;)V:GetOnViewCreated_Landroid_view_View_Landroid_os_Bundle_Handler\n" +
 			"n_onResume:()V:GetOnResumeHandler\n" +
 			"n_onPause:()V:GetOnPauseHandler\n" +
+			"n_onAttach:(Landroid/content/Context;)V:GetOnAttach_Landroid_content_Context_Handler\n" +
+			"n_onDetach:()V:GetOnDetachHandler\n" +
 			"n_onClick:(Landroid/view/View;)V:GetOnClick_Landroid_view_View_Handler:Android.Views.View/IOnClickListenerInvoker, Mono.Android, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null\n" +
 			"";
 		mono.android.Runtime.register ("FunkyApp.Droid.CameraFragment, FunkyApp.Android", CameraFragment.class, __md_methods);
@@ -67,6 +69,22 @@ public class CameraFragment
 	}
 
 	private native void n_onPause ();
+
+
+	public void onAttach (android.content.Context p0)
+	{
+		n_onAttach (p0);
+	}
+
+	private native void n_onAttach (android.content.Context p0);
+
+
+	public void onDetach ()
+	{
+		n_onDetach ();
+	}
+
+	private native void n_onDetach ();
 
 
 	public void onClick (android.view.View p0)

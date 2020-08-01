@@ -8,6 +8,7 @@
   <uses-permission android:name="android.permission.RECORD_AUDIO" />
   <uses-permission android:name="android.permission.CAMERA" />
   <application android:name="android.app.Application" android:allowBackup="true" android:appComponentFactory="androidx.core.app.CoreComponentFactory" android:debuggable="true" android:icon="@drawable/j055y" android:label="FunkyApp">
+    <uses-library android:name="org.apache.http.legacy" android:required="false" />
     <activity android:name="crc6469ea0e39e9a1df0f.MainActivity" android:configChanges="orientation|screenSize" android:icon="@mipmap/icon" android:label="FunkyApp" android:theme="@style/MainTheme">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
@@ -30,5 +31,8 @@
         <category android:name="mono.android.intent.category.SEPPUKU.com.j055y.funkyapp" />
       </intent-filter>
     </receiver>
+    <provider android:name="com.google.firebase.provider.FirebaseInitProvider" android:authorities="com.j055y.funkyapp.firebaseinitprovider" android:exported="false" android:initOrder="100" />
+    <activity android:name="com.google.android.gms.common.api.GoogleApiActivity" android:exported="false" android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+    <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
   </application>
 </manifest>

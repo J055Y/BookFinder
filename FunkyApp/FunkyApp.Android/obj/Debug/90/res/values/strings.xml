@@ -1,1 +1,1 @@
-<resources><string name="record">Record</string><string name="stop">Stop</string><string name="description_info">Info</string></resources>
+<resources><string name="record">Record</string><string name="stop">Stop</string><string name="description_info">Info</string><string name="description_database_record">Record Data</string><string name="captureFrame">Capture Frame</string><string name="output_image_description">This is the outputted frame</string><string name="output_text_description">This is temporary text</string></resources>

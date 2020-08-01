@@ -12,3 +12,5 @@ Object detection for books to feed back information to user.
 1. Improve Book ML Model
 2. Impove OCR Feedback
 3. Optimise Code
+4. Make UI Pretty
+5. Compile Licenses

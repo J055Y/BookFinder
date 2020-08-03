@@ -2,13 +2,6 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
-<!--  <FunkyApp.Droid.AutoFitTextureView
-    android:id="@+id/texture"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_alignParentStart="true"
-    android:layout_alignParentTop="true" />-->
-
     <TextureView
         android:id="@+id/texture"
         android:layout_width="match_parent"
@@ -22,12 +15,6 @@
         android:layout_marginBottom="20dp"
         android:layout_above="@id/texture">
 <!--        <Button
-            android:id="@+id/video"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="@string/record" />
-        <Button
             android:id="@+id/recordData"
             style="@android:style/Widget.DeviceDefault.Light.Button.Borderless.Small"
             android:layout_width="wrap_content"
@@ -42,14 +29,5 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="@string/captureFrame"/>
-        <!--        <ImageButton
-            android:id="@+id/info"
-            android:contentDescription="@string/description_info"
-            style="@android:style/Widget.DeviceDefault.Light.Button.Borderless.Small"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical|right"
-            android:padding="20dp"
-            android:src="@drawable/ic_action_info" />-->
     </FrameLayout>
 </RelativeLayout>

@@ -15,39 +15,20 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System;
 using System.Linq;
-using Android.App;
 
 namespace FunkyApp.Droid
 {
     [Android.App.Activity(Label = "FunkyApp", Icon = "@mipmap/icon", Theme = "@style/MainTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
     public class MainActivity : AppCompatActivity, CameraFragment.ICameraFragmentListener
     {
-/*        MainActivityListener mainActivityListener;
-        public interface MainActivityListener
-        {
-            void OnResponse(string response);
-        }
-        public void OnResponse(string response)
-        {
-            mainActivityListener.OnResponse(response);
-        }*/
-
         private const string TAG = "MainActivity";
-
-        // Interface Call
-        //CameraFragment.CameraFragmentListener onImageSetListener;
-
-        public int CameraPermissionRequestCode = 1337;
+        private const int CameraPermissionRequestCode = 1337;
         private Bundle instanceState;
 
-        //private readonly string key = "a2a972dd8bcd4525828ad98b324e1ef4";
-        //private readonly string endpoint = "https://computervisiondetectionservice.cognitiveservices.azure.com/";
-
-        public string OCRPredictionContentString;
-        public string ObjectPredictionContentString;
+        private string OCRPredictionContentString;
+        private string objectPredictionContentString;
         public byte[] BitmapByteArray;
         
-
         protected override void OnCreate(Bundle savedInstanceState)
         {
             //TabLayoutResource = Resource.Layout.Tabbar;
@@ -69,10 +50,6 @@ namespace FunkyApp.Droid
             SupportFragmentManager.BeginTransaction()
                 .Replace(Resource.Id.container, fragment)
                 .Commit();
-
-            //Xamarin.Essentials.Platform.Init(this, savedInstanceState);
-            //global::Xamarin.Forms.Forms.Init(this, savedInstanceState);
-            //LoadApplication(new App());
         }
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
@@ -96,7 +73,7 @@ namespace FunkyApp.Droid
             SetContentView(Resource.Layout.activity_camera);
             if (instanceState == null)
             {
-                base.SupportFragmentManager.BeginTransaction()
+                SupportFragmentManager.BeginTransaction()
                     .Replace(Resource.Id.container, CameraFragment.NewInstance())
                     .Commit();
             }
@@ -115,7 +92,7 @@ namespace FunkyApp.Droid
             content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
             response = await client.PostAsync(url, content);
             var responseString = await response.Content.ReadAsStringAsync();
-            ObjectPredictionContentString = responseString;
+            objectPredictionContentString = responseString;
             Log.Debug(TAG, "Prediction Request Made");
         }
 
@@ -137,7 +114,7 @@ namespace FunkyApp.Droid
             OCRPredictionContentString = responseString;
         }
 
-        private byte[] CompressBitmapToBytes(Bitmap bitmap)
+        private static byte[] CompressBitmapToBytes(Bitmap bitmap)
         {
             var quality = 100;
 
@@ -157,71 +134,54 @@ namespace FunkyApp.Droid
         {
             
             var loadingDialog = new LoadingDialog(this);
+            //var textView = (TextView)loadingDialog.FindViewById(Resource.Id.loadingText);
             loadingDialog.StartLoadingDialog();
 
-            //loadingDialog.Text = "Getting Image";
-            byte[] imageByteArray = CompressBitmapToBytes(image);
-            //loadingDialog.Text = "Detecting Books";
+            loadingDialog.Text= "Getting Image...";
+            var imageByteArray = CompressBitmapToBytes(image);
+            loadingDialog.Text = "Detecting Books...";
             await MakePredictionRequest(imageByteArray);
-            //loadingDialog.Text = "Processing Image";
-            var croppedImageByteArray = ProcessImage(imageByteArray);
-            //loadingDialog.Text = "Detecting Text";
-            await MakeOCRRequest(croppedImageByteArray);
-            Log.Debug(TAG, OCRPredictionContentString);
-            //loadingDialog.Text = "Creating Fragment";
-            ImageDisplayFragment fragment = new ImageDisplayFragment();
-            Bundle args = new Bundle();
-            args.PutByteArray("outputImage", croppedImageByteArray);
-            args.PutString("predictionContent", ObjectPredictionContentString);
-            args.PutString("OCRContent", OCRPredictionContentString);
-            fragment.Arguments = args;
-
-            SupportFragmentManager.BeginTransaction()
-                .Replace(Resource.Id.container, fragment)
-                .AddToBackStack(null)
-                .Commit();
+            loadingDialog.Text = "Processing Image...";
             
-            loadingDialog.DismissDialog();
+            
+            var croppedImageByteArray = ProcessImage(imageByteArray);
+            if (croppedImageByteArray != null)
+            {
+                loadingDialog.Text = "Detecting Text...";
+                await MakeOCRRequest(croppedImageByteArray);
+                Log.Debug(TAG, OCRPredictionContentString);
+                loadingDialog.Text = "Creating Fragment...";
+                var fragment = new ImageDisplayFragment();
+                var args = new Bundle();
+                args.PutByteArray("outputImage", croppedImageByteArray);
+                args.PutString("predictionContent", objectPredictionContentString);
+                args.PutString("OCRContent", OCRPredictionContentString);
+                fragment.Arguments = args;
+
+                SupportFragmentManager.BeginTransaction()
+                    .Replace(Resource.Id.container, fragment)
+                    .AddToBackStack(null)
+                    .Commit();
+                loadingDialog.DismissDialog();
+            }
+            else
+            {
+                loadingDialog.DismissDialog();
+                var failureDialog = new BookFailureDialog(this);
+                failureDialog.StartDialog();
+            }
+            
         }
-
-/*        public static ComputerVisionClient Authenticate(string endpoint, string key)
-        {
-            ComputerVisionClient client =
-              new ComputerVisionClient(new ApiKeyServiceClientCredentials(key))
-              { Endpoint = endpoint };
-            return client;
-        }*/
-
 
         private byte[] ProcessImage(byte[] imageByteArray)
         {
             var bitmap = ByteArrayToBitmap(imageByteArray);
-            var bookObject = ProcessPredictionJson(ObjectPredictionContentString);
+            var bookObject = ProcessPredictionJson(objectPredictionContentString);
+            if (bookObject == null) return null;
             var croppedImage = CropImage(bitmap, bookObject.boundingBox);
             var imageBytes = BitmapToByteArray(croppedImage);
-
             return imageBytes;
         }
-
-        /*        private void stuff()
-                {
-                    var bookObject = ProcessPredictionJson(ObjectPredictionContentString);
-                    if (bookObject != null)
-                    {
-                        try
-                        {
-                            var croppedImage = CropImage(bitmap, bookObject.boundingBox);
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Error(TAG, "Couldn't crop image. Error: " + e.Message);
-                        }
-                    }
-                    else
-                    {
-                        Log.Error(TAG, "Book Object is null; unable to parse Json: " + ObjectPredictionContentString);
-                    }
-                }*/
 
         private static byte[] BitmapToByteArray(Bitmap bitmap)
         {
@@ -283,7 +243,7 @@ namespace FunkyApp.Droid
             }
 
             var highestProbability = bookPredictions.OrderByDescending(item => item.probability).First();
-            return highestProbability;
+            return highestProbability.probability < 0.6 ? null : highestProbability;
         }
 
     }

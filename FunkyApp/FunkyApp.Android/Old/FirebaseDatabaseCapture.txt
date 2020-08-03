@@ -1,0 +1,29 @@
+﻿case Resource.Id.recordData:
+    Snackbar snackbar = Snackbar.Make(view, "Button Pressed", Snackbar.LengthShort);
+    snackbar.Show();
+
+    var cameraID = cameraDevice.Id;
+
+    Date date = new Date();
+    SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+    string timeanddate = formatter.Format(date);
+
+    HashMap infoHash = new HashMap();
+    infoHash.Put("CameraID", cameraID);
+    infoHash.Put("TimeAndDate", timeanddate);
+
+    AlertDialog.Builder saveDataAlert = new AlertDialog.Builder(Activity);
+    saveDataAlert.SetTitle("Save Camera Information");
+    saveDataAlert.SetMessage("Do you want to save camera information?");
+    saveDataAlert.SetPositiveButton("Continue", (senderAlert, args) =>
+    {
+        DatabaseReference infoReference = AppDataHelper.GetDatabase().GetReference("camerainfo").Push();
+        infoReference.SetValue(infoHash);
+        this.Dispose();
+    });
+    saveDataAlert.SetNegativeButton("Cancel", (senderAlert, args) =>
+    {
+        saveDataAlert.Dispose();
+    });
+    saveDataAlert.Show();
+    break;

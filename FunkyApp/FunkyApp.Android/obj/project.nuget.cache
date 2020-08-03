@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "0XWOo4YOLJgzYZzTBfe9/K3uquPGsWW60//rbCf1WoJ9Z5+co7kvj3BGmeY/jPWFeJ8Q3xM85cnI9H9X1oMC4Q==",
+  "dgSpecHash": "39q2G4xfozi3J0c2LY4fYaTciATE4ea0VYphsekdT95PHpS6Af9npKjHWtrmqf2NQJFFJbPrITvRB4/gu8oLhw==",
   "success": true,
   "projectFilePath": "C:\\Users\\Administrator\\source\\repos\\FunkyApp\\FunkyApp\\FunkyApp.Android\\FunkyApp.Android.csproj",
   "expectedPackageFiles": [
@@ -28,7 +28,7 @@
     "C:\\Users\\Administrator\\.nuget\\packages\\system.io.filesystem.primitives\\4.3.0\\system.io.filesystem.primitives.4.3.0.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\system.linq\\4.3.0\\system.linq.4.3.0.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\system.linq.expressions\\4.3.0\\system.linq.expressions.4.3.0.nupkg.sha512",
-    "C:\\Users\\Administrator\\.nuget\\packages\\system.net.http\\4.3.4\\system.net.http.4.3.4.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\system.net.http\\4.1.2\\system.net.http.4.1.2.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\system.net.primitives\\4.3.0\\system.net.primitives.4.3.0.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\system.net.sockets\\4.3.0\\system.net.sockets.4.3.0.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\system.objectmodel\\4.3.0\\system.objectmodel.4.3.0.nupkg.sha512",
@@ -141,22 +141,23 @@
     "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.firebase.database\\71.1601.4\\xamarin.firebase.database.71.1601.4.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.firebase.database.collection\\71.1601.4\\xamarin.firebase.database.collection.71.1601.4.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.firebase.database.connection\\71.1601.4\\xamarin.firebase.database.connection.71.1601.4.nupkg.sha512",
-    "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.firebase.ml.common\\71.1612.4\\xamarin.firebase.ml.common.71.1612.4.nupkg.sha512",
-    "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.firebase.ml.vision\\71.1700.4\\xamarin.firebase.ml.vision.71.1700.4.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.forms\\4.7.0.1239\\xamarin.forms.4.7.0.1239.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.google.android.material\\1.0.0.1\\xamarin.google.android.material.1.0.0.1.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.google.autovalue.annotations\\1.6.5\\xamarin.google.autovalue.annotations.1.6.5.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.google.guava.listenablefuture\\1.0.0.2\\xamarin.google.guava.listenablefuture.1.0.0.2.nupkg.sha512",
-    "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.googleplayservices.auth.base\\71.1600.4\\xamarin.googleplayservices.auth.base.71.1600.4.nupkg.sha512",
-    "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.googleplayservices.base\\71.1610.4\\xamarin.googleplayservices.base.71.1610.4.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.googleplayservices.basement\\71.1620.4\\xamarin.googleplayservices.basement.71.1620.4.nupkg.sha512",
-    "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.googleplayservices.clearcut\\71.1600.4\\xamarin.googleplayservices.clearcut.71.1600.4.nupkg.sha512",
-    "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.googleplayservices.flags\\71.1601.4\\xamarin.googleplayservices.flags.71.1601.4.nupkg.sha512",
-    "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.googleplayservices.phenotype\\71.1600.4\\xamarin.googleplayservices.phenotype.71.1600.4.nupkg.sha512",
-    "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.googleplayservices.tasks\\71.1601.4\\xamarin.googleplayservices.tasks.71.1601.4.nupkg.sha512",
-    "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.googleplayservices.vision\\71.1702.4\\xamarin.googleplayservices.vision.71.1702.4.nupkg.sha512",
-    "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.googleplayservices.vision.common\\71.1702.4\\xamarin.googleplayservices.vision.common.71.1702.4.nupkg.sha512",
-    "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.googleplayservices.vision.imagelabel\\71.1702.4\\xamarin.googleplayservices.vision.imagelabel.71.1702.4.nupkg.sha512"
+    "C:\\Users\\Administrator\\.nuget\\packages\\xamarin.googleplayservices.tasks\\71.1601.4\\xamarin.googleplayservices.tasks.71.1601.4.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: System.Net.Http from 4.3.4 to 4.1.2. Reference the package directly from the project to select a different version. \r\n FunkyApp.Android -> Microsoft.Azure.CognitiveServices.Vision.CustomVision.Prediction 2.0.0 -> System.Net.Http (>= 4.3.4) \r\n FunkyApp.Android -> System.Net.Http (>= 4.1.2)",
+      "libraryId": "System.Net.Http",
+      "targetGraphs": [
+        "MonoAndroid,Version=v9.0"
+      ]
+    }
+  ]
 }

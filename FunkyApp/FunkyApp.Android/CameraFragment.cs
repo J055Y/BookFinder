@@ -34,13 +34,7 @@ namespace FunkyApp.Droid
 		private const string TAG = "CameraFragment";
 		
 		private readonly SparseIntArray ORIENTATIONS = new SparseIntArray();
-
-		// Button to record video
-		//private Button buttonVideo;
-
-		// Button to record to database
-		//private Button buttonData;
-
+		
 		//Button to capture frame
 		private Button buttonCapture;
 
@@ -49,9 +43,7 @@ namespace FunkyApp.Droid
 		
 		public CameraDevice CameraDevice;
 		public CameraCaptureSession PreviewSession;
-		//public MediaRecorder mediaRecorder;
 
-		//private bool isRecordingVideo;
 		public readonly Semaphore CameraOpenCloseLock = new Semaphore(1);
 
 		// Called when the CameraDevice changes state
@@ -171,12 +163,12 @@ namespace FunkyApp.Droid
 
 					if (bitmap != null)
 					{
-						Snackbar.Make(this.View, "Bitmap Captured", Snackbar.LengthShort)
+						Snackbar.Make(View, "Bitmap Captured", Snackbar.LengthShort)
 							.Show();
 					}
 					else
 					{
-						Snackbar.Make(this.View, "Bitmap Not Captured", Snackbar.LengthShort)
+						Snackbar.Make(View, "Bitmap Not Captured", Snackbar.LengthShort)
 							   .Show();
 					}
 					cameraFragmentListener?.OnImageSet(bitmap);

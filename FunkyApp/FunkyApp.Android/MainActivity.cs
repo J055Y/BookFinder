@@ -15,6 +15,7 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using Goodreads;
 
 namespace FunkyApp.Droid
 {
@@ -27,6 +28,7 @@ namespace FunkyApp.Droid
 
         private string OCRPredictionContentString;
         private string objectPredictionContentString;
+        private string bookResultContentString;
         public byte[] BitmapByteArray;
         
         protected override void OnCreate(Bundle savedInstanceState)
@@ -84,13 +86,11 @@ namespace FunkyApp.Droid
             var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Prediction-key", "c468b269e71d4cefaf20efcffbd36bfa");
 
-            string url = "https://uksouth.api.cognitive.microsoft.com/customvision/v3.0/Prediction/3bad1034-6c58-4a6c-a005-a0b622612392/detect/iterations/BookObjectDetection_v1/image";
-
-            HttpResponseMessage response;
+            const string url = "https://uksouth.api.cognitive.microsoft.com/customvision/v3.0/Prediction/3bad1034-6c58-4a6c-a005-a0b622612392/detect/iterations/BookModel_v2/image";
 
             using var content = new ByteArrayContent(imageByteArray);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-            response = await client.PostAsync(url, content);
+            var response = await client.PostAsync(url, content);
             var responseString = await response.Content.ReadAsStringAsync();
             objectPredictionContentString = responseString;
             Log.Debug(TAG, "Prediction Request Made");
@@ -102,16 +102,69 @@ namespace FunkyApp.Droid
             var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "a2a972dd8bcd4525828ad98b324e1ef4");
 
-            string url = "https://computervisiondetectionservice.cognitiveservices.azure.com/vision/v2.1/ocr?language=unk&detectOrientation=true";
+            const string url = "https://computervisiondetectionservice.cognitiveservices.azure.com/vision/v2.1/ocr?language=en&detectOrientation=true";
 
-            HttpResponseMessage response;
-
-            using ByteArrayContent content = new ByteArrayContent(imageByteArray);
+            using var content = new ByteArrayContent(imageByteArray);
             content.Headers.ContentType =
                 new MediaTypeHeaderValue("application/octet-stream");
-            response = await client.PostAsync(url, content);
+            var response = await client.PostAsync(url, content);
             var responseString = await response.Content.ReadAsStringAsync();
             OCRPredictionContentString = responseString;
+        }
+
+        private async Task MakeBookRequest(string bookString)
+        {
+            // const string key = "AIzaSyCzGOmxWYQzWDLRQEIzv1IRDQ9sGz7U44c";
+            // const string url = "https://www.googleapis.com/books/v1/volumes?q=";
+
+            const string apiKey = "ZI5z6LNTbugq3mYjL1WGww";
+            const string secret = "e0W9GHLfPEklbFpWFp4XWXX0WslRkQ0YV7zACcDkpxQ";
+
+            var client = GoodreadsClient.Create(apiKey, secret);
+            var books = await client.Books.Search(bookString);
+            if (books.List == null)
+            {
+                Log.Error(TAG, "Books is null");
+                bookResultContentString = "Could not find book";
+            }
+            else
+            {
+                Log.Debug(TAG, "Book String: " + bookString);
+                Log.Debug(TAG, "Book Response Object: " + books);
+                Log.Debug(TAG, "Book Response Pagination: " + books.Pagination);
+                Log.Debug(TAG, "Book Response Pagination Total Items: " + books.Pagination.TotalItems);
+                Log.Debug(TAG, "Book Response Pagination Start: " + books.Pagination.Start);
+                Log.Debug(TAG, "Book Response Pagination End: " + books.Pagination.End);
+                Log.Debug(TAG, "Book Response List Count: " + books.List.Count);
+
+                var book = books.List.First().BestBook;
+                foreach (var bookWork in books.List)
+                {
+                    Log.Debug(TAG, bookWork.ToString());
+                    Log.Debug(TAG, "Book Work Id: " + bookWork.Id);
+                    Log.Debug(TAG, "Best Book: " + bookWork.BestBook.Title);
+                }
+
+                bookResultContentString = book.AuthorName + " - " + book.Title;
+
+                // var oneBook = await client.Books.GetByTitle("After The Quake", "Haruki Murakami");
+                // if (oneBook != null)
+                // {
+                //     Log.Debug(TAG, "One Book Title: " + oneBook.Title);
+                // }
+            }
+
+            // try
+            // {
+            //     foreach (var book in books.List)
+            //     {
+            //         bookResultContentString += book.OriginalTitle;
+            //     }
+            // }
+            // catch (NullReferenceException e)
+            // {
+            //     Log.Error(TAG, "Book list is empty (null). " + e.Message);
+            // }
         }
 
         private static byte[] CompressBitmapToBytes(Bitmap bitmap)
@@ -132,7 +185,6 @@ namespace FunkyApp.Droid
 
         public async void OnImageSet(Bitmap image)
         {
-            
             var loadingDialog = new LoadingDialog(this);
             //var textView = (TextView)loadingDialog.FindViewById(Resource.Id.loadingText);
             loadingDialog.StartLoadingDialog();
@@ -140,7 +192,16 @@ namespace FunkyApp.Droid
             loadingDialog.Text= "Getting Image...";
             var imageByteArray = CompressBitmapToBytes(image);
             loadingDialog.Text = "Detecting Books...";
-            await MakePredictionRequest(imageByteArray);
+            try
+            {
+                await MakePredictionRequest(imageByteArray);
+            }
+            catch (Javax.Net.Ssl.SSLException e)
+            {
+                loadingDialog.DismissDialog();
+                var errorDialog = new ErrorDialog(this, e.Message);
+                errorDialog.StartDialog();
+            }
             loadingDialog.Text = "Processing Image...";
             
             
@@ -150,19 +211,36 @@ namespace FunkyApp.Droid
                 loadingDialog.Text = "Detecting Text...";
                 await MakeOCRRequest(croppedImageByteArray);
                 Log.Debug(TAG, OCRPredictionContentString);
-                loadingDialog.Text = "Creating Fragment...";
-                var fragment = new ImageDisplayFragment();
-                var args = new Bundle();
-                args.PutByteArray("outputImage", croppedImageByteArray);
-                args.PutString("predictionContent", objectPredictionContentString);
-                args.PutString("OCRContent", OCRPredictionContentString);
-                fragment.Arguments = args;
+                
+                var bookString = ProcessOCRJson(OCRPredictionContentString);
+                if (bookString != null)
+                {
+                    Log.Debug(TAG, "Book String: " + bookString);
+                    loadingDialog.Text = "Searching Books...";
+                    await MakeBookRequest(bookString);
+                
+                    loadingDialog.Text = "Creating Fragment...";
+                    var fragment = new ImageDisplayFragment();
+                    var args = new Bundle();
+                    args.PutByteArray("outputImage", croppedImageByteArray);
+                    args.PutString("predictionContent", objectPredictionContentString);
+                    args.PutString("OCRContent", bookString);
+                    args.PutString("bookContent", bookResultContentString);
+                
+                    fragment.Arguments = args;
 
-                SupportFragmentManager.BeginTransaction()
-                    .Replace(Resource.Id.container, fragment)
-                    .AddToBackStack(null)
-                    .Commit();
-                loadingDialog.DismissDialog();
+                    SupportFragmentManager.BeginTransaction()
+                        .Replace(Resource.Id.container, fragment)
+                        .AddToBackStack(null)
+                        .Commit();
+                    loadingDialog.DismissDialog();
+                }
+                else
+                {
+                    loadingDialog.DismissDialog();
+                    var errorDialog = new ErrorDialog(this, "Book String is Null");
+                    errorDialog.StartDialog();
+                }
             }
             else
             {
@@ -244,6 +322,46 @@ namespace FunkyApp.Droid
 
             var highestProbability = bookPredictions.OrderByDescending(item => item.probability).First();
             return highestProbability.probability < 0.6 ? null : highestProbability;
+        }
+
+        private static string ProcessOCRJson(string jsonString)
+        {
+            var jObject = JObject.Parse(jsonString);
+
+            try
+            {
+                var lines = (JArray) jObject["regions"][0]["lines"];
+
+                IList<JObject> wordContainers = lines.Select(c => (JObject) c).ToList();
+                var wordObjectArrays = wordContainers.Select(wordContainer => wordContainer["words"]);
+                IList<string> textCollection = 
+                    (from wordObjectArray in wordObjectArrays from wordObject in wordObjectArray
+                        .Select(wordObject => (JObject) wordObject) select wordObject["text"]
+                        .ToString()).ToList();
+
+                var outString = "";
+                foreach (var word in textCollection)
+                {
+                    outString += word;
+                    if (!word.Equals(textCollection.Last()))
+                    {
+                        outString += " ";
+                    }
+                }
+
+                Log.Debug(TAG, "Book String: " + outString);
+                return outString;
+            }
+            catch (NullReferenceException e)
+            {
+                Log.Error(TAG, "Could not find text object in OCR String. " + e.Message);
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                Log.Error(TAG, "Lines Array is empty. " + e.Message);
+            }
+            
+            return null;
         }
 
     }

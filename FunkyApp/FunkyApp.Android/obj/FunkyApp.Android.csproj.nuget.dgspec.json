@@ -43,6 +43,10 @@
       "frameworks": {
         "monoandroid90": {
           "dependencies": {
+            "Goodreads": {
+              "target": "Package",
+              "version": "[1.0.1, )"
+            },
             "Microsoft.Azure.CognitiveServices.Vision.CustomVision.Prediction": {
               "target": "Package",
               "version": "[2.0.0, )"

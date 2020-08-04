@@ -13,6 +13,7 @@ namespace FunkyApp.Droid
         private byte[] outputImageByteArray;
         private string objectPredictionContentString;
         private string OCRPredictionContentString;
+        private string bookResultContentString;
 
         private ImageView outputImage;
         private TextView outputText;
@@ -29,6 +30,7 @@ namespace FunkyApp.Droid
             outputImageByteArray = Arguments.GetByteArray("outputImage");
             objectPredictionContentString = Arguments.GetString("predictionContent");
             OCRPredictionContentString = Arguments.GetString("OCRContent");
+            bookResultContentString = Arguments.GetString("bookContent");
 
             return inflater.Inflate(Resource.Layout.fragment_display_image, container, false);
         }
@@ -53,7 +55,15 @@ namespace FunkyApp.Droid
             var bitmap = ByteArrayToBitmap(outputImageByteArray);
             outputImage.SetImageBitmap(bitmap);
 
-            outputText.Text = OCRPredictionContentString;
+            if (OCRPredictionContentString != null)
+            {
+                outputText.Text = OCRPredictionContentString + "\n\n" + bookResultContentString;
+            }
+            else
+            {
+                outputText.Text = "Failed to find text";
+            }
+            
         }
     }
 }

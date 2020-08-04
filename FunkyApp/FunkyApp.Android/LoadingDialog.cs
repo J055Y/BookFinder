@@ -34,6 +34,7 @@ namespace FunkyApp.Droid
         public void DismissDialog()
         {
             dialog.Dismiss();
+            dialog.Dispose();
         }
 
         public string Text

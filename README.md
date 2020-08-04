@@ -11,5 +11,5 @@ Object detection for books to feed back information to user.
 
 ## To-Do
 1. Improve Book ML Model
-3. Optimise Code
-5. Compile Licenses
+2. Optimise Code
+3. Compile Licenses

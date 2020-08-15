@@ -1,20 +1,25 @@
-﻿ 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+﻿<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical">
 
     <ImageView
         android:id="@+id/outputImage"
         android:layout_width="match_parent"
-        android:layout_height="400dp"
+        android:layout_height="wrap_content"
         android:contentDescription="@string/output_image_description"
-        android:src="@drawable/j055y"/>
+        android:src="@drawable/j055y"
+        app:layout_constraintBottom_toTopOf="@id/bookInfoContainer"/>
 
-    <RelativeLayout
+    <LinearLayout
+        android:id="@+id/bookInfoContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/colorAccent">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/colorAccent"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
             android:id="@+id/outputText"
@@ -22,11 +27,18 @@
             android:layout_height="wrap_content"
             android:textSize="9pt"
             android:textAlignment="center"
-            android:layout_centerVertical="true"
             android:fontFamily="IBMPlexSans"
             android:text="@string/output_text_description"
             android:scrollbars="vertical"/>
+        
+        <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/resultList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/outputText"
+                android:scrollbars="horizontal"
+                android:background="@color/colorPrimary"/>
 
-    </RelativeLayout>
+    </LinearLayout>
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

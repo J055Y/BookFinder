@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Android.App;
 using Android.Content;
@@ -19,6 +20,7 @@ using AlertDialog = Android.Support.V7.App.AlertDialog;
 using DialogFragment = AndroidX.Fragment.App.DialogFragment;
 using Fragment = AndroidX.Fragment.App.Fragment;
 using Android.Support.Design.Widget;
+using Exception = Java.Lang.Exception;
 
 namespace FunkyApp.Droid
 {
@@ -105,7 +107,15 @@ namespace FunkyApp.Droid
 
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 		{
-			return inflater.Inflate(Resource.Layout.fragment_camera2_video, container, false);
+			try
+			{
+				return inflater.Inflate(Resource.Layout.fragment_camera2_video, container, false);
+			}
+			catch (IllegalArgumentException e)
+			{
+				Log.Debug(TAG, "Could not access container view. " + e.Message);
+				throw;
+			}
 		}
 
 		public override void OnViewCreated(View view, Bundle savedInstanceState)
@@ -159,6 +169,7 @@ namespace FunkyApp.Droid
             switch (view.Id)
             {
 				case Resource.Id.capture:
+					buttonCapture.Enabled = false;
 					var bitmap = CaptureStillImage();
 
 					if (bitmap != null)
@@ -172,6 +183,7 @@ namespace FunkyApp.Droid
 							   .Show();
 					}
 					cameraFragmentListener?.OnImageSet(bitmap);
+					buttonCapture.Enabled = true;
 					break;
                 default:
                     break;

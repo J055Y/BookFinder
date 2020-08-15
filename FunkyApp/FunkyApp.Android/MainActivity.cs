@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using Goodreads;
+using Java.Lang;
 
 namespace FunkyApp.Droid
 {
@@ -29,7 +30,7 @@ namespace FunkyApp.Droid
         private string OCRPredictionContentString;
         private string objectPredictionContentString;
         private string bookResultContentString;
-        public byte[] BitmapByteArray;
+        private IList<string> gBookResultContentStringArray;
         
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -56,17 +57,15 @@ namespace FunkyApp.Droid
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
         {
-            if (requestCode == CameraPermissionRequestCode)
+            if (requestCode != CameraPermissionRequestCode) return;
+            if ((grantResults.Length == 1) && (grantResults[0] == Permission.Granted))
             {
-                if ((grantResults.Length == 1) && (grantResults[0] == Permission.Granted))
-                {
-                    StartProgram();
-                }
-                else
-                {
-                    Toast.MakeText(this, "Camera permission has not been granted; the app will not function.", ToastLength.Short)
-                        .Show();
-                }
+                StartProgram();
+            }
+            else
+            {
+                Toast.MakeText(this, "Camera permission has not been granted; the app will not function.", ToastLength.Short)
+                    .Show();
             }
         }
 
@@ -75,9 +74,17 @@ namespace FunkyApp.Droid
             SetContentView(Resource.Layout.activity_camera);
             if (instanceState == null)
             {
-                SupportFragmentManager.BeginTransaction()
-                    .Replace(Resource.Id.container, CameraFragment.NewInstance())
-                    .Commit();
+                try
+                {
+                    SupportFragmentManager.BeginTransaction()
+                        .Replace(Resource.Id.container, CameraFragment.NewInstance())
+                        .Commit();
+                }
+                catch (IllegalArgumentException e)
+                {
+                    Log.Debug(TAG, "Could not access container view. " + e.Message);
+                    throw;
+                }
             }
         }
 
@@ -86,7 +93,7 @@ namespace FunkyApp.Droid
             var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Prediction-key", "c468b269e71d4cefaf20efcffbd36bfa");
 
-            const string url = "https://uksouth.api.cognitive.microsoft.com/customvision/v3.0/Prediction/3bad1034-6c58-4a6c-a005-a0b622612392/detect/iterations/BookModel_v2/image";
+            const string url = "https://uksouth.api.cognitive.microsoft.com/customvision/v3.0/Prediction/3bad1034-6c58-4a6c-a005-a0b622612392/detect/iterations/BookModel_v3/image";
 
             using var content = new ByteArrayContent(imageByteArray);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
@@ -114,57 +121,114 @@ namespace FunkyApp.Droid
 
         private async Task MakeBookRequest(string bookString)
         {
-            // const string key = "AIzaSyCzGOmxWYQzWDLRQEIzv1IRDQ9sGz7U44c";
-            // const string url = "https://www.googleapis.com/books/v1/volumes?q=";
+            const string gKey = "AIzaSyCzGOmxWYQzWDLRQEIzv1IRDQ9sGz7U44c";
+            const string gUrl = "https://www.googleapis.com/books/v1/volumes?q=";
 
             const string apiKey = "ZI5z6LNTbugq3mYjL1WGww";
             const string secret = "e0W9GHLfPEklbFpWFp4XWXX0WslRkQ0YV7zACcDkpxQ";
 
             var client = GoodreadsClient.Create(apiKey, secret);
-            var books = await client.Books.Search(bookString);
-            if (books.List == null)
+            var goodreadsBooks = await client.Books.Search(bookString);
+            if (goodreadsBooks.List == null)
             {
                 Log.Error(TAG, "Books is null");
                 bookResultContentString = "Could not find book";
             }
             else
             {
-                Log.Debug(TAG, "Book String: " + bookString);
-                Log.Debug(TAG, "Book Response Object: " + books);
-                Log.Debug(TAG, "Book Response Pagination: " + books.Pagination);
-                Log.Debug(TAG, "Book Response Pagination Total Items: " + books.Pagination.TotalItems);
-                Log.Debug(TAG, "Book Response Pagination Start: " + books.Pagination.Start);
-                Log.Debug(TAG, "Book Response Pagination End: " + books.Pagination.End);
-                Log.Debug(TAG, "Book Response List Count: " + books.List.Count);
+                var goodreadsBook = goodreadsBooks.List.First().BestBook;
+                bookResultContentString = goodreadsBook.AuthorName + " - " + goodreadsBook.Title;
 
-                var book = books.List.First().BestBook;
-                foreach (var bookWork in books.List)
+                var gClient = new HttpClient();
+                var result = await gClient.GetAsync(gUrl + bookString + "&key=" + gKey);
+                var resultString = await result.Content.ReadAsStringAsync();
+                //Log.Debug(TAG, "GResultString: " + resultString);
+                
+                var resultObject = JsonConvert.DeserializeObject<JObject>(resultString);
+                var bookObjects = resultObject.Value<JArray>("items").Take(5);
+                foreach (var b in bookObjects)
                 {
-                    Log.Debug(TAG, bookWork.ToString());
-                    Log.Debug(TAG, "Book Work Id: " + bookWork.Id);
-                    Log.Debug(TAG, "Best Book: " + bookWork.BestBook.Title);
+                    Log.Debug(TAG, "Book Object" + b);
+                }
+                var books = bookObjects.Select(CreateBook).ToList();
+                var jsonBooks = books.Select(JsonConvert.SerializeObject).ToList();
+                gBookResultContentStringArray = jsonBooks;
+            }
+        }
+        
+        private static Book CreateBook(JToken bookObject)
+        {
+            var book = new Book();
+            
+            // Google Books Reference
+            book.Id = bookObject["id"]?.ToString();
+            book.GUrl = bookObject["selfLink"]?.ToString();
+            
+            // Volume Info
+            var volumeInfo = bookObject["volumeInfo"];
+            var volume = new VolumeInfo();
+
+            if (volumeInfo != null)
+            {
+                volume.Title = volumeInfo["title"]?.ToString() ?? "??";
+
+                var authorObjects = volumeInfo.Value<JArray>("authors");
+                if (authorObjects != null)
+                {
+                    var authors = authorObjects.Select(authorObject => authorObject.ToString()).ToList();
+                    if (authors.Count > 0) volume.Authors = authors;
                 }
 
-                bookResultContentString = book.AuthorName + " - " + book.Title;
+                volume.Publisher = volumeInfo["publisher"]?.ToString();
+                volume.PublishedDate = volumeInfo["publishedDate"]?.ToString();
+                volume.Description = volumeInfo["description"]?.ToString();
 
-                // var oneBook = await client.Books.GetByTitle("After The Quake", "Haruki Murakami");
-                // if (oneBook != null)
-                // {
-                //     Log.Debug(TAG, "One Book Title: " + oneBook.Title);
-                // }
+                var identifierObjects = volumeInfo.Value<JArray>("industryIdentifiers");
+                foreach (var identifierObject in identifierObjects)
+                {
+                    if (identifierObject["type"].ToString().Equals("ISBN_13"))
+                    {
+                        volume.ISBN = identifierObject["identifier"]?.ToString();
+                    }
+                }
+
+                var categoryObjects = volumeInfo.Value<JArray>("categories");
+                if (categoryObjects != null)
+                {
+                    var categories = categoryObjects.Select(categoryObject => categoryObject.ToString()).ToList();
+                    if (categories.Count > 0) volume.Categories = categories;
+                }
+                
+                volume.AverageRating = double.Parse(volumeInfo["averageRating"]?.ToString() ?? "-1");
+                volume.RatingsCount = int.Parse(volumeInfo["ratingsCount"]?.ToString() ?? "-1");
+                volume.Thumbnail = volumeInfo["imageLinks"]?["thumbnail"]?.ToString() ?? "https://j055y.com/images/j055y.png";
             }
 
-            // try
-            // {
-            //     foreach (var book in books.List)
-            //     {
-            //         bookResultContentString += book.OriginalTitle;
-            //     }
-            // }
-            // catch (NullReferenceException e)
-            // {
-            //     Log.Error(TAG, "Book list is empty (null). " + e.Message);
-            // }
+            book.VolumeInfo = volume;
+
+            // Sale Info
+            var saleInfo = bookObject["saleInfo"];
+            var sale = new SaleInfo();
+
+            if (saleInfo != null)
+            {
+                sale.Country = saleInfo["country"]?.ToString();
+
+                var listPrice = new BookPrice(
+                    double.Parse(saleInfo["retailPrice"]?["amount"]?.ToString() ?? "-1"),
+                    saleInfo["listPrice"]?["currencyCode"]?.ToString() ?? "UNK");
+                sale.ListPrice = listPrice;
+                var retailPrice = new BookPrice(
+                    double.Parse(saleInfo["retailPrice"]?["amount"]?.ToString() ?? "-1"),
+                    saleInfo["retailPrice"]?["currencyCode"]?.ToString() ?? "UNK");
+                sale.RetailPrice = retailPrice;
+
+                sale.PurchaseLink = saleInfo["buyLink"]?.ToString();
+            }
+
+            book.SaleInfo = sale;
+
+            return book;
         }
 
         private static byte[] CompressBitmapToBytes(Bitmap bitmap)
@@ -186,7 +250,6 @@ namespace FunkyApp.Droid
         public async void OnImageSet(Bitmap image)
         {
             var loadingDialog = new LoadingDialog(this);
-            //var textView = (TextView)loadingDialog.FindViewById(Resource.Id.loadingText);
             loadingDialog.StartLoadingDialog();
 
             loadingDialog.Text= "Getting Image...";
@@ -203,8 +266,7 @@ namespace FunkyApp.Droid
                 errorDialog.StartDialog();
             }
             loadingDialog.Text = "Processing Image...";
-            
-            
+
             var croppedImageByteArray = ProcessImage(imageByteArray);
             if (croppedImageByteArray != null)
             {
@@ -226,7 +288,8 @@ namespace FunkyApp.Droid
                     args.PutString("predictionContent", objectPredictionContentString);
                     args.PutString("OCRContent", bookString);
                     args.PutString("bookContent", bookResultContentString);
-                
+                    args.PutStringArrayList("gBookStringArray", gBookResultContentStringArray);
+
                     fragment.Arguments = args;
 
                     SupportFragmentManager.BeginTransaction()
@@ -245,10 +308,9 @@ namespace FunkyApp.Droid
             else
             {
                 loadingDialog.DismissDialog();
-                var failureDialog = new BookFailureDialog(this);
-                failureDialog.StartDialog();
+                var errorDialog = new ErrorDialog(this, "Unable to find books in image");
+                errorDialog.StartDialog();
             }
-            
         }
 
         private byte[] ProcessImage(byte[] imageByteArray)
@@ -298,7 +360,7 @@ namespace FunkyApp.Droid
             return formattedBox;
         }
 
-        private static BookPrediction ProcessPredictionJson(string jsonString)
+        private BookPrediction ProcessPredictionJson(string jsonString)
         {
             // Iterate through each prediction record
             // Deserialise Json as BookPrediction
@@ -317,6 +379,8 @@ namespace FunkyApp.Droid
             }
             catch (NullReferenceException)
             {
+                var errorDialog = new ErrorDialog(this, "No bounding boxes returned");
+                errorDialog.StartDialog();
                 return null;
             }
 

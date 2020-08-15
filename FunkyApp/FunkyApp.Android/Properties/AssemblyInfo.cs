@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using Android.App;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Xamarin.Forms;
 
@@ -27,6 +28,7 @@ using Xamarin.Forms;
 [assembly: ExportFont("IBMPlexSans-Thin.ttf", Alias ="IBMPlexSans")]
 
 // Add some common permissions, these can be removed if not needed
+[assembly: Application(UsesCleartextTraffic = true)]
 //[assembly: UsesPermission(Android.Manifest.Permission.Internet)]
 //[assembly: UsesPermission(Android.Manifest.Permission.WriteExternalStorage)]
 //[assembly:UsesPermission(Android.Manifest.Permission.Camera)]

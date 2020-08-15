@@ -68,7 +68,7 @@
     <content url="file://$USER_HOME$/.nuget/packages/xamarin.androidx.versionedparcelable/1.1.0.1/proguard" />
     <content url="file://$USER_HOME$/.nuget/packages/xamarin.androidx.viewpager/1.0.0.1/aar/androidx.viewpager.viewpager.aar" />
     <content url="file://$USER_HOME$/.nuget/packages/xamarin.firebase.common/71.1610.4/proguard/MonoAndroid90/proguard.txt" />
-    <content url="file://$USER_HOME$/.nuget/packages/xamarin.forms/4.7.0.1239/buildTransitive/MonoAndroid10" />
+    <content url="file://$USER_HOME$/.nuget/packages/xamarin.forms/4.8.0.1269/buildTransitive/MonoAndroid10" />
     <content url="file://$USER_HOME$/.nuget/packages/xamarin.google.android.material/1.0.0.1/aar/com.google.android.material.material.aar" />
     <content url="file://$USER_HOME$/.nuget/packages/xamarin.google.android.material/1.0.0.1/proguard/proguard.txt" />
     <content url="file://$USER_HOME$/.nuget/packages/xamarin.google.guava.listenablefuture/1.0.0.2/buildTransitive/monoandroid50" />

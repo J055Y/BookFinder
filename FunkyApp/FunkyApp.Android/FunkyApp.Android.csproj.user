@@ -3,6 +3,6 @@
   <PropertyGroup>
     <SelectedDevice>OnePlus A6013</SelectedDevice>
     <DefaultDevice>pixel_2_pie_9_0_-_api_28</DefaultDevice>
-    <AndroidDesignerPreferredDevice>Nexus 4</AndroidDesignerPreferredDevice>
+    <AndroidDesignerPreferredDevice>pixel_2_xl</AndroidDesignerPreferredDevice>
   </PropertyGroup>
 </Project>

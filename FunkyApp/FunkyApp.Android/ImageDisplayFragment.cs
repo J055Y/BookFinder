@@ -1,9 +1,17 @@
 ﻿using Android.Graphics;
 using Android.OS;
 using Android.Text.Method;
+using Android.Util;
 using Android.Views;
 using Android.Widget;
 using AndroidX.Fragment.App;
+using AndroidX.RecyclerView.Widget;
+using Java.Util;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Linq;
+using static AndroidX.RecyclerView.Widget.RecyclerView;
+
 namespace FunkyApp.Droid
 {
     public class ImageDisplayFragment : Fragment
@@ -14,6 +22,7 @@ namespace FunkyApp.Droid
         private string objectPredictionContentString;
         private string OCRPredictionContentString;
         private string bookResultContentString;
+        private IList<string> gBookResultContentStringArray;
 
         private ImageView outputImage;
         private TextView outputText;
@@ -31,6 +40,7 @@ namespace FunkyApp.Droid
             objectPredictionContentString = Arguments.GetString("predictionContent");
             OCRPredictionContentString = Arguments.GetString("OCRContent");
             bookResultContentString = Arguments.GetString("bookContent");
+            gBookResultContentStringArray = Arguments.GetStringArrayList("gBookStringArray");
 
             return inflater.Inflate(Resource.Layout.fragment_display_image, container, false);
         }
@@ -57,13 +67,29 @@ namespace FunkyApp.Droid
 
             if (OCRPredictionContentString != null)
             {
-                outputText.Text = OCRPredictionContentString + "\n\n" + bookResultContentString;
+                outputText.Text = bookResultContentString + "\n";
+
+                try
+                {
+                    var books = gBookResultContentStringArray
+                        .Select(JsonConvert.DeserializeObject<Book>)
+                        .ToList();
+
+                    var recyclerAdapter = new RecyclerAdapter(Context, books);
+                    var recyclerView = View.FindViewById<RecyclerView>(Resource.Id.resultList);
+                    recyclerView.SetAdapter(recyclerAdapter);
+
+                    var layoutManager = new LinearLayoutManager(Context, LinearLayoutManager.Horizontal, false);
+                    recyclerView.SetLayoutManager(layoutManager);
+                } catch(Java.Lang.Exception)
+                {
+                    Log.Debug(TAG, "Bad things happened...");
+                }
             }
             else
             {
                 outputText.Text = "Failed to find text";
             }
-            
         }
     }
 }

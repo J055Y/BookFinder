@@ -309,7 +309,7 @@
           "lib/MonoAndroid10/_._": {}
         }
       },
-      "System.Net.Http/4.1.2": {
+      "System.Net.Http/4.3.4": {
         "type": "package",
         "frameworkAssemblies": [
           "System.Net.Http"
@@ -2323,7 +2323,7 @@
           "build/MonoAndroid90/Xamarin.Firebase.Database.Connection.targets": {}
         }
       },
-      "Xamarin.Forms/4.7.0.1239": {
+      "Xamarin.Forms/4.8.0.1269": {
         "type": "package",
         "dependencies": {
           "Xamarin.Android.Support.CustomTabs": "28.0.0.3",
@@ -2448,7 +2448,7 @@
         "framework": ".NETStandard,Version=v2.0",
         "dependencies": {
           "Xamarin.Essentials": "1.5.3.2",
-          "Xamarin.Forms": "4.7.0.1239"
+          "Xamarin.Forms": "4.8.0.1269"
         },
         "compile": {
           "bin/placeholder/FunkyApp.dll": {}
@@ -3635,10 +3635,10 @@
         "system.linq.expressions.nuspec"
       ]
     },
-    "System.Net.Http/4.1.2": {
-      "sha512": "oBRfZyr1bN5zm2N3cvL+z5zwXi6vr4BJLfqTD0QNGL/O/OOobG0CsdT1wx4DUrsy8wv/XorY9Ue1c6BSf4KeOQ==",
+    "System.Net.Http/4.3.4": {
+      "sha512": "aOa2d51SEbmM+H+Csw7yJOuNZoHkrP2XnAurye5HWYgGVVU54YZDvsLUYRv6h18X3sPnjNCANmN7ZhIPiqMcjA==",
       "type": "package",
-      "path": "system.net.http/4.1.2",
+      "path": "system.net.http/4.3.4",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -3660,49 +3660,9 @@
         "ref/monotouch10/_._",
         "ref/net45/_._",
         "ref/net46/System.Net.Http.dll",
-        "ref/net46/System.Net.Http.xml",
-        "ref/net46/de/System.Net.Http.xml",
-        "ref/net46/es/System.Net.Http.xml",
-        "ref/net46/fr/System.Net.Http.xml",
-        "ref/net46/it/System.Net.Http.xml",
-        "ref/net46/ja/System.Net.Http.xml",
-        "ref/net46/ko/System.Net.Http.xml",
-        "ref/net46/ru/System.Net.Http.xml",
-        "ref/net46/zh-hans/System.Net.Http.xml",
-        "ref/net46/zh-hant/System.Net.Http.xml",
         "ref/netcore50/System.Net.Http.dll",
-        "ref/netcore50/System.Net.Http.xml",
-        "ref/netcore50/de/System.Net.Http.xml",
-        "ref/netcore50/es/System.Net.Http.xml",
-        "ref/netcore50/fr/System.Net.Http.xml",
-        "ref/netcore50/it/System.Net.Http.xml",
-        "ref/netcore50/ja/System.Net.Http.xml",
-        "ref/netcore50/ko/System.Net.Http.xml",
-        "ref/netcore50/ru/System.Net.Http.xml",
-        "ref/netcore50/zh-hans/System.Net.Http.xml",
-        "ref/netcore50/zh-hant/System.Net.Http.xml",
         "ref/netstandard1.1/System.Net.Http.dll",
-        "ref/netstandard1.1/System.Net.Http.xml",
-        "ref/netstandard1.1/de/System.Net.Http.xml",
-        "ref/netstandard1.1/es/System.Net.Http.xml",
-        "ref/netstandard1.1/fr/System.Net.Http.xml",
-        "ref/netstandard1.1/it/System.Net.Http.xml",
-        "ref/netstandard1.1/ja/System.Net.Http.xml",
-        "ref/netstandard1.1/ko/System.Net.Http.xml",
-        "ref/netstandard1.1/ru/System.Net.Http.xml",
-        "ref/netstandard1.1/zh-hans/System.Net.Http.xml",
-        "ref/netstandard1.1/zh-hant/System.Net.Http.xml",
         "ref/netstandard1.3/System.Net.Http.dll",
-        "ref/netstandard1.3/System.Net.Http.xml",
-        "ref/netstandard1.3/de/System.Net.Http.xml",
-        "ref/netstandard1.3/es/System.Net.Http.xml",
-        "ref/netstandard1.3/fr/System.Net.Http.xml",
-        "ref/netstandard1.3/it/System.Net.Http.xml",
-        "ref/netstandard1.3/ja/System.Net.Http.xml",
-        "ref/netstandard1.3/ko/System.Net.Http.xml",
-        "ref/netstandard1.3/ru/System.Net.Http.xml",
-        "ref/netstandard1.3/zh-hans/System.Net.Http.xml",
-        "ref/netstandard1.3/zh-hant/System.Net.Http.xml",
         "ref/portable-net45+win8+wpa81/_._",
         "ref/win8/_._",
         "ref/wpa81/_._",
@@ -3713,7 +3673,7 @@
         "runtimes/win/lib/net46/System.Net.Http.dll",
         "runtimes/win/lib/netcore50/System.Net.Http.dll",
         "runtimes/win/lib/netstandard1.3/System.Net.Http.dll",
-        "system.net.http.4.1.2.nupkg.sha512",
+        "system.net.http.4.3.4.nupkg.sha512",
         "system.net.http.nuspec"
       ]
     },
@@ -6987,10 +6947,10 @@
         "xamarin.firebase.database.connection.nuspec"
       ]
     },
-    "Xamarin.Forms/4.7.0.1239": {
-      "sha512": "vGtrCFHo/eEIDPk0yHsktW1xl4rt+KbTab2ciPbsU7tlI5x88aspH9IJlfybh5ejCFhRYYpNr8+uB9vX08bsuA==",
+    "Xamarin.Forms/4.8.0.1269": {
+      "sha512": "3UFTlfJvF9l8HB+gWVmYUEVRSPU+c3H0G/h09RVG8/P5i/QRiDBg/YHEGfPR3HNuWlJ9S9TgZjrFruTUS1ZYiQ==",
       "type": "package",
-      "path": "xamarin.forms/4.7.0.1239",
+      "path": "xamarin.forms/4.8.0.1269",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -7297,7 +7257,7 @@
         "lib/uap10.0.16299/Xamarin.Forms.Xaml.dll",
         "lib/uap10.0.16299/Xamarin.Forms.Xaml.pdb",
         "lib/uap10.0.16299/Xamarin.Forms.Xaml.xml",
-        "xamarin.forms.4.7.0.1239.nupkg.sha512",
+        "xamarin.forms.4.8.0.1269.nupkg.sha512",
         "xamarin.forms.nuspec"
       ]
     },
@@ -7391,23 +7351,25 @@
       "Goodreads >= 1.0.1",
       "Microsoft.Azure.CognitiveServices.Vision.CustomVision.Prediction >= 2.0.0",
       "Newtonsoft.Json >= 12.0.3",
-      "System.Net.Http >= 4.1.2",
+      "System.Net.Http >= 4.3.4",
       "Xamarin.AndroidX.Activity >= 1.1.0.1",
       "Xamarin.AndroidX.Browser >= 1.2.0.1",
+      "Xamarin.AndroidX.CardView >= 1.0.0.1",
       "Xamarin.AndroidX.ConstraintLayout >= 1.1.3.1",
       "Xamarin.AndroidX.Fragment >= 1.2.4.1",
       "Xamarin.AndroidX.Legacy.Support.V4 >= 1.0.0.1",
       "Xamarin.AndroidX.Lifecycle.LiveData >= 2.2.0.1",
+      "Xamarin.AndroidX.RecyclerView >= 1.1.0.1",
       "Xamarin.Essentials >= 1.5.3.2",
       "Xamarin.Firebase.Database >= 71.1601.4",
-      "Xamarin.Forms >= 4.7.0.1239",
+      "Xamarin.Forms >= 4.8.0.1269",
       "Xamarin.Google.Android.Material >= 1.0.0.1",
       "morelinq >= 3.3.2"
     ]
   },
   "packageFolders": {
     "C:\\Users\\Administrator\\.nuget\\packages\\": {},
-    "C:\\Microsoft\\Xamarin\\NuGet": {}
+    "C:\\Microsoft\\Xamarin\\NuGet\\": {}
   },
   "project": {
     "version": "1.0.0",
@@ -7420,7 +7382,7 @@
       "projectStyle": "PackageReference",
       "skipContentFileWrite": true,
       "fallbackFolders": [
-        "C:\\Microsoft\\Xamarin\\NuGet"
+        "C:\\Microsoft\\Xamarin\\NuGet\\"
       ],
       "configFilePaths": [
         "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -7462,7 +7424,7 @@
           },
           "System.Net.Http": {
             "target": "Package",
-            "version": "[4.1.2, )"
+            "version": "[4.3.4, )"
           },
           "Xamarin.AndroidX.Activity": {
             "target": "Package",
@@ -7471,6 +7433,10 @@
           "Xamarin.AndroidX.Browser": {
             "target": "Package",
             "version": "[1.2.0.1, )"
+          },
+          "Xamarin.AndroidX.CardView": {
+            "target": "Package",
+            "version": "[1.0.0.1, )"
           },
           "Xamarin.AndroidX.ConstraintLayout": {
             "target": "Package",
@@ -7488,6 +7454,10 @@
             "target": "Package",
             "version": "[2.2.0.1, )"
           },
+          "Xamarin.AndroidX.RecyclerView": {
+            "target": "Package",
+            "version": "[1.1.0.1, )"
+          },
           "Xamarin.Essentials": {
             "target": "Package",
             "version": "[1.5.3.2, )"
@@ -7498,7 +7468,7 @@
           },
           "Xamarin.Forms": {
             "target": "Package",
-            "version": "[4.7.0.1239, )"
+            "version": "[4.8.0.1269, )"
           },
           "Xamarin.Google.Android.Material": {
             "target": "Package",
@@ -7511,17 +7481,5 @@
         }
       }
     }
-  },
-  "logs": [
-    {
-      "code": "NU1605",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Detected package downgrade: System.Net.Http from 4.3.4 to 4.1.2. Reference the package directly from the project to select a different version. \r\n FunkyApp.Android -> Microsoft.Azure.CognitiveServices.Vision.CustomVision.Prediction 2.0.0 -> System.Net.Http (>= 4.3.4) \r\n FunkyApp.Android -> System.Net.Http (>= 4.1.2)",
-      "libraryId": "System.Net.Http",
-      "targetGraphs": [
-        "MonoAndroid,Version=v9.0"
-      ]
-    }
-  ]
+  }
 }

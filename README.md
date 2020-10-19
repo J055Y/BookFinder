@@ -1,5 +1,5 @@
 # BookFinder
-Augmented reality app utilising ML object detection to give user information about a book.
+Android app utilising ML object detection to give user information about a book.
 
 ## Roadmap
 1. Camera Functionality ✅

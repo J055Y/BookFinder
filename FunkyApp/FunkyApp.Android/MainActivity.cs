@@ -91,13 +91,11 @@ namespace FunkyApp.Droid
         private async Task MakePredictionRequest(byte[] imageByteArray)
         {
             var client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Prediction-key", "c468b269e71d4cefaf20efcffbd36bfa");
-
-            const string url = "https://uksouth.api.cognitive.microsoft.com/customvision/v3.0/Prediction/3bad1034-6c58-4a6c-a005-a0b622612392/detect/iterations/BookModel_v3/image";
+            client.DefaultRequestHeaders.Add("Prediction-key", Key.PredictionKey);
 
             using var content = new ByteArrayContent(imageByteArray);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-            var response = await client.PostAsync(url, content);
+            var response = await client.PostAsync(Key.ModelUrl, content);
             var responseString = await response.Content.ReadAsStringAsync();
             objectPredictionContentString = responseString;
             Log.Debug(TAG, "Prediction Request Made");
@@ -107,7 +105,7 @@ namespace FunkyApp.Droid
         {
 
             var client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "a2a972dd8bcd4525828ad98b324e1ef4");
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", Key.OcpKey);
 
             const string url = "https://computervisiondetectionservice.cognitiveservices.azure.com/vision/v2.1/ocr?language=en&detectOrientation=true";
 
@@ -121,13 +119,7 @@ namespace FunkyApp.Droid
 
         private async Task MakeBookRequest(string bookString)
         {
-            const string gKey = "AIzaSyCzGOmxWYQzWDLRQEIzv1IRDQ9sGz7U44c";
-            const string gUrl = "https://www.googleapis.com/books/v1/volumes?q=";
-
-            const string apiKey = "ZI5z6LNTbugq3mYjL1WGww";
-            const string secret = "e0W9GHLfPEklbFpWFp4XWXX0WslRkQ0YV7zACcDkpxQ";
-
-            var client = GoodreadsClient.Create(apiKey, secret);
+            var client = GoodreadsClient.Create(Key.ApiKey, Key.Secret);
             var goodreadsBooks = await client.Books.Search(bookString);
             if (goodreadsBooks.List == null)
             {
@@ -140,7 +132,7 @@ namespace FunkyApp.Droid
                 bookResultContentString = goodreadsBook.AuthorName + " - " + goodreadsBook.Title;
 
                 var gClient = new HttpClient();
-                var result = await gClient.GetAsync(gUrl + bookString + "&key=" + gKey);
+                var result = await gClient.GetAsync(Key.GUrl + bookString + "&key=" + Key.GKey);
                 var resultString = await result.Content.ReadAsStringAsync();
                 //Log.Debug(TAG, "GResultString: " + resultString);
                 
